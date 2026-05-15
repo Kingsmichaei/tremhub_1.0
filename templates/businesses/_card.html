@@ -1,0 +1,36 @@
+{% load static %}
+<div class="col-sm-6 col-lg-3">
+  <a href="{% url 'businesses:detail' business.pk %}" class="text-decoration-none">
+    <div class="trem-biz-card h-100">
+      <div class="trem-biz-card-img">
+        {% if business.logo %}
+          <img src="{{ business.logo.url }}" alt="{{ business.name }}">
+        {% else %}
+          <div class="trem-biz-card-placeholder">
+            <i class="bi bi-shop"></i>
+          </div>
+        {% endif %}
+        {% if business.is_featured %}
+          <span class="trem-badge-featured">
+            <i class="bi bi-star-fill me-1"></i>Featured
+          </span>
+        {% endif %}
+      </div>
+      <div class="trem-biz-card-body">
+        <span class="trem-biz-category">{{ business.category_display }}</span>
+        <h6 class="fw-bold mb-1 text-dark">{{ business.name }}</h6>
+        <p class="text-muted small mb-2 trem-line-clamp-2">{{ business.description }}</p>
+        <div class="d-flex align-items-center gap-2 mt-auto">
+          {% if business.owner.profile.photo %}
+            <img src="{{ business.owner.profile.photo.url }}" class="trem-mini-avatar" alt="">
+          {% else %}
+            <div class="trem-mini-avatar-placeholder">
+              {{ business.owner.first_name|first|upper }}
+            </div>
+          {% endif %}
+          <small class="text-muted">{{ business.owner.get_full_name|default:business.owner.username }}</small>
+        </div>
+      </div>
+    </div>
+  </a>
+</div>

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile.display_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="trem-profile-cover"></div>
+        <div class="card-body text-center px-4 pb-4">
+          <div class="trem-profile-photo-wrap mx-auto">
+            {% if profile.photo %}
+              <img src="{{ profile.photo.url }}" alt="{{ profile.display_name }}">
+            {% else %}
+              <div class="trem-profile-initials">
+                {{ member.first_name|first|upper }}{{ member.last_name|first|upper }}
+              </div>
+            {% endif %}
+          </div>
+          <h4 class="fw-bold mt-3 mb-1">{{ profile.display_name }}</h4>
+          {% if profile.occupation %}
+          <p class="text-trem fw-semibold small mb-2">{{ profile.occupation }}</p>
+          {% endif %}
+          {% if profile.bio %}
+          <p class="text-muted small mb-3">{{ profile.bio }}</p>
+          {% endif %}
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            {% if profile.branch %}
+            <span class="badge trem-badge-outline"><i class="bi bi-geo-alt me-1"></i>{{ profile.branch_display }}</span>
+            {% endif %}
+            {% if profile.unit %}
+            <span class="badge trem-badge-outline"><i class="bi bi-people me-1"></i>{{ profile.unit_display }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">Contact</h6>
+          {% if member.email %}
+          <div class="trem-contact-row"><i class="bi bi-envelope text-trem"></i><a href="mailto:{{ member.email }}">{{ member.email }}</a></div>
+          {% endif %}
+          {% if profile.phone %}
+          <div class="trem-contact-row"><i class="bi bi-telephone text-trem"></i><a href="tel:{{ profile.phone }}">{{ profile.phone }}</a></div>
+          {% endif %}
+          {% if profile.instagram %}
+          <div class="trem-contact-row"><i class="bi bi-instagram" style="color:#e1306c"></i>
+            <a href="https://instagram.com/{{ profile.instagram }}" target="_blank">@{{ profile.instagram }}</a></div>
+          {% endif %}
+          {% if profile.twitter %}
+          <div class="trem-contact-row"><i class="bi bi-twitter-x"></i>
+            <a href="https://twitter.com/{{ profile.twitter }}" target="_blank">@{{ profile.twitter }}</a></div>
+          {% endif %}
+          {% if not member.email and not profile.phone %}
+          <p class="text-muted small mb-0">No public contact info.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <h4 class="fw-bold mb-4">Businesses by {{ profile.display_name }}</h4>
+      {% if businesses %}
+      <div class="row g-4">
+        {% for biz in businesses %}
+          {% include 'businesses/_card.html' with business=biz %}
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="trem-empty-state">
+        <i class="bi bi-shop"></i>
+        <h5>No businesses listed</h5>
+        <p class="text-muted">This member hasn't listed any businesses yet.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

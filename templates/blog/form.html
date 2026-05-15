@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Create a {{ title }} post{% endblock %}
+
+{% block content %}
+<section class="py-5 trem-feed-shell">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-7">
+        <div class="tweet-compose card border-0 shadow-sm mb-4">
+          <div class="card-body p-3 p-md-4 tweet-card-body">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="tweet-avatar">
+                {% if user.profile.photo %}
+                <img src="{{ user.profile.photo.url }}" alt="{{ user.get_full_name }}">
+                {% else %}
+                <span>{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</span>
+                {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <form method="post" enctype="multipart/form-data" class="tweet-compose-form">
+                                  <form method="post" enctype="multipart/form-data" class="tweet-compose-form force-ajax-file" data-success-message="Post created successfully!">
+                  {% csrf_token %}
+                  <div class="tweet-compose-header mb-2">
+                    <div class="fw-semibold text-dark">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="text-muted small">@{{ user.username }}</div>
+                  </div>
+                  <div class="mb-2">
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="text-danger small mt-1">{{ form.content.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="tweet-compose-categories mb-3">
+                    <div class="tweet-compose-label">Topics</div>
+                    <div class="tweet-topic-chips">
+                      {% for choice in form.categories %}
+                      <label class="tweet-topic-chip">
+                        {{ choice.tag }}
+                        <span>{{ choice.choice_label }}</span>
+                      </label>
+                      {% endfor %}
+                    </div>
+                    {% if form.categories.errors %}
+                    <div class="text-danger small mt-1">{{ form.categories.errors|striptags }}</div>
+                    {% endif %}
+                  </div>
+
+                  <div class="tweet-compose-footer">
+                    <div class="tweet-compose-tools">
+                      <button type="button" class="tweet-tool-btn" data-image-source="gallery" title="Add image">
+                        <i class="bi bi-image"></i>
+                        <span>Media</span>
+                      </button>
+                      <button type="button" class="tweet-tool-btn" data-image-source="video" title="Add video">
+                        <i class="bi bi-camera-video"></i>
+                        <span>Video</span>
+                      </button>
+                      <label class="tweet-tool-btn" for="tweetCameraInput" title="Capture from camera">
+                        <i class="bi bi-camera"></i>
+                        <span>Camera</span>
+                      </label>
+                      {{ form.image }}
+                      {{ form.video }}
+                      <input type="file" id="tweetCameraInput" class="tweet-camera-input" name="{{ form.image.html_name }}" accept="image/*" capture="environment" tabindex="-1">
+                      <input type="file" id="tweetCameraInput" class="tweet-camera-input" accept="image/*" capture="environment" tabindex="-1">
+                      </label>
+                    </div>
+                    <div class="tweet-compose-submit">
+                      <span class="tweet-char-counter" aria-live="polite">250</span>
+                      <button type="submit" class="btn tweet-post-btn rounded-pill px-4">Post</button>
+                    </div>
+                  </div>
+                  <div class="tweet-compose-preview" hidden>
+                    <img class="tweet-compose-preview-image" alt="Preview of selected uploaded image">
+                    <video class="tweet-compose-preview-video" controls playsinline hidden></video>
+                    <button type="button" class="tweet-compose-preview-remove" aria-label="Remove media">
+                      <i class="bi bi-x-lg"></i>
+                    </button>
+                  </div>
+                </form>
+                {% if form.image.errors %}
+                <div class="text-danger small mt-2">{{ form.image.errors|striptags }}</div>
+                {% endif %}
+                {% if form.video.errors %}
+                <div class="text-danger small mt-2">{{ form.video.errors|striptags }}</div>
+                {% endif %}
+                {% if form.non_field_errors %}
+                <div class="text-danger small mt-2">{{ form.non_field_errors|striptags }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block footer %}{% endblock %}
+

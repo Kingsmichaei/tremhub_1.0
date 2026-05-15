@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row g-4">
+    <!-- Left: Profile Card -->
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="trem-profile-cover"></div>
+        <div class="card-body text-center px-4 pb-4">
+          <div class="trem-profile-photo-wrap mx-auto">
+            {% if profile.photo %}
+              <img src="{{ profile.photo.url }}" alt="{{ profile.display_name }}">
+            {% else %}
+              <div class="trem-profile-initials">
+                {{ user.first_name|first|upper }}{{ user.last_name|first|upper }}
+              </div>
+            {% endif %}
+          </div>
+          <h4 class="fw-bold mt-3 mb-1">{{ profile.display_name }}</h4>
+          <p class="text-muted small mb-1">@{{ user.username }}</p>
+          {% if profile.occupation %}
+          <p class="text-trem fw-semibold small mb-2">{{ profile.occupation }}</p>
+          {% endif %}
+          {% if profile.bio %}
+          <p class="text-muted small mb-3">{{ profile.bio }}</p>
+          {% endif %}
+
+          <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+            {% if profile.branch %}
+            <span class="badge trem-badge-outline">
+              <i class="bi bi-geo-alt me-1"></i>{{ profile.branch_display }}
+            </span>
+            {% endif %}
+            {% if profile.unit %}
+            <span class="badge trem-badge-outline">
+              <i class="bi bi-people me-1"></i>{{ profile.unit_display }}
+            </span>
+            {% endif %}
+          </div>
+
+          <a href="{% url 'accounts:edit_profile' %}" class="btn btn-trem w-100 mb-2">
+            <i class="bi bi-pencil me-2"></i>Edit Profile
+          </a>
+          <a href="{% url 'businesses:create' %}" class="btn btn-outline-trem w-100">
+            <i class="bi bi-plus-circle me-2"></i>Add Business
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact Card -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">Contact & Social</h6>
+          {% if user.email %}
+          <div class="trem-contact-row"><i class="bi bi-envelope text-trem"></i><span>{{ user.email }}</span></div>
+          {% endif %}
+          {% if profile.phone %}
+          <div class="trem-contact-row"><i class="bi bi-telephone text-trem"></i><span>{{ profile.phone }}</span></div>
+          {% endif %}
+          {% if profile.instagram %}
+          <div class="trem-contact-row"><i class="bi bi-instagram" style="color:#e1306c"></i>
+            <a href="https://instagram.com/{{ profile.instagram }}" target="_blank">@{{ profile.instagram }}</a></div>
+          {% endif %}
+          {% if profile.twitter %}
+          <div class="trem-contact-row"><i class="bi bi-twitter-x"></i>
+            <a href="https://twitter.com/{{ profile.twitter }}" target="_blank">@{{ profile.twitter }}</a></div>
+          {% endif %}
+          {% if profile.facebook %}
+          <div class="trem-contact-row"><i class="bi bi-facebook" style="color:#1877f2"></i>
+            <a href="https://facebook.com/{{ profile.facebook }}" target="_blank">{{ profile.facebook }}</a></div>
+          {% endif %}
+          {% if profile.linkedin %}
+          <div class="trem-contact-row"><i class="bi bi-linkedin" style="color:#0a66c2"></i>
+            <a href="https://linkedin.com/in/{{ profile.linkedin }}" target="_blank">{{ profile.linkedin }}</a></div>
+          {% endif %}
+          {% if not user.email and not profile.phone %}
+          <p class="text-muted small mb-0">No contact info added yet.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Businesses -->
+    <div class="col-lg-8">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">My Businesses</h4>
+        <a href="{% url 'businesses:create' %}" class="btn btn-trem btn-sm">
+          <i class="bi bi-plus-lg me-1"></i>Add New
+        </a>
+      </div>
+
+      {% if businesses %}
+      <div class="row g-3">
+        {% for biz in businesses %}
+        <div class="col-sm-6">
+          <div class="card border-0 shadow-sm h-100 trem-my-biz-card">
+            <div class="card-body p-3">
+              <div class="d-flex gap-3 align-items-start">
+                {% if biz.logo %}
+                  <img src="{{ biz.logo.url }}" class="trem-biz-thumb" alt="">
+                {% else %}
+                  <div class="trem-biz-thumb-placeholder"><i class="bi bi-shop"></i></div>
+                {% endif %}
+                <div class="flex-grow-1">
+                  <h6 class="fw-bold mb-1">{{ biz.name }}</h6>
+                  <span class="trem-biz-category small">{{ biz.category_display }}</span>
+                  <p class="text-muted small mb-0 mt-1 trem-line-clamp-2">{{ biz.description }}</p>
+                </div>
+              </div>
+              <div class="d-flex gap-2 mt-3">
+                <a href="{% url 'businesses:detail' biz.pk %}" class="btn btn-outline-trem btn-sm flex-grow-1">View</a>
+                <a href="{% url 'businesses:edit' biz.pk %}" class="btn btn-outline-secondary btn-sm">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'businesses:delete' biz.pk %}" class="btn btn-outline-danger btn-sm">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="trem-empty-state">
+        <i class="bi bi-shop"></i>
+        <h5>No businesses listed yet</h5>
+        <p class="text-muted">Add your first business to the TREMHUB catalogue.</p>
+        <a href="{% url 'businesses:create' %}" class="btn btn-trem">
+          <i class="bi bi-plus me-2"></i>Add Business
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

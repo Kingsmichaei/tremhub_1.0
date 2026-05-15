@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="trem-page-header">
+  <div class="container">
+    <h1 class="fw-bold text-white mb-1">Edit Profile</h1>
+    <p class="text-white-75">Keep your community profile up to date</p>
+  </div>
+</div>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm"style="background-color: var(--trem-red-pale);">
+        <div class="card-body p-4 p-lg-5">
+          <form method="post" enctype="multipart/form-data" style="background-color: var(--trem-red-pale);" class="force-ajax-file" data-success-message="Profile updated successfully!">
+            {% csrf_token %}
+            {% crispy form %}
+          </form>
+          <div class="text-center mt-3">
+            <a href="{% url 'accounts:profile' %}" class="text-muted small">
+              <i class="bi bi-arrow-left me-1"></i>Back to Profile
+            </a>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="danger-zone">
+            <h6 class="fw-bold text-danger mb-3">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>Danger Zone
+            </h6>
+            <a href="{% url 'accounts:delete_account' %}" class="btn btn-outline-danger w-100">
+              <i class="bi bi-trash me-2"></i>Delete Account
+            </a>
+            <p class="text-danger small mt-2 mb-0">
+              This action cannot be undone. Your account and all associated data will be permanently deleted.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

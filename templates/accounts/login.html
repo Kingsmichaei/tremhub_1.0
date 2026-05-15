@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Sign In{% endblock %}
+
+{% block content %}
+<div class="trem-auth-page">
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-80">
+      <div class="col-md-5 col-lg-4">
+        <div class="card border-0 shadow-lg">
+          <div class="card-body p-4 p-lg-5">
+            <div class="text-center mb-4">
+              <div class="trem-auth-logo mx-auto mb-3">T</div>
+              <h2 class="fw-bold mb-1">Welcome Back</h2>
+              <p class="text-muted">Sign in to your TREMHUB account</p>
+            </div>
+            <form method="post" data-success-message="Login successful!">
+              {% csrf_token %}
+              {% crispy form %}
+            </form>
+            <hr>
+            <p class="text-center text-muted mb-0 small">
+              New to TREMHUB? <a href="{% url 'accounts:register' %}" class="text-trem fw-semibold">Create Account</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

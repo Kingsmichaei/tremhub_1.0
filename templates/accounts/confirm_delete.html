@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Account{% endblock %}
+
+{% block content %}
+<div class="trem-page-header">
+  <div class="container">
+    <h1 class="fw-bold text-white mb-1">Delete Account</h1>
+    <p class="text-white-75">This action cannot be undone</p>
+  </div>
+</div>
+
+<div class="container py-5" style="background-color: var(--trem-red-pale);">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4 p-lg-5">
+          <div class="alert alert-danger mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Warning:</strong> Deleting your account is permanent and cannot be reversed.
+          </div>
+
+          <h5 class="fw-bold mb-3">What will happen:</h5>
+          <ul class="mb-4">
+            <li>Your account and all profile information will be permanently deleted</li>
+            <li>You will not be able to log in to your account</li>
+            <li>Any businesses you own will be deleted</li>
+            <li>Your posts and comments will be removed</li>
+          </ul>
+
+          <form method="post" class="d-flex gap-2" data-success-message="Account deleted successfully. Redirecting to home...">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger w-100">
+              <i class="bi bi-trash me-2"></i>Yes, Delete My Account
+            </button>
+            <a href="{% url 'accounts:edit_profile' %}" class="btn btn-secondary w-100">
+              <i class="bi bi-x-lg me-2"></i>Cancel
+            </a>
+          </form>
+
+          <div class="text-center mt-3">
+            <a href="{% url 'accounts:profile' %}" class="text-muted small">
+              <i class="bi bi-arrow-left me-1"></i>Back to Profile
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

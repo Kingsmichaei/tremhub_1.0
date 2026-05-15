@@ -1,0 +1,500 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ post.title }}activity{% endblock %}
+
+{% block content %}
+<section class="py-5 trem-feed-shell">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-7">
+        <article class="tweet-card card border-0 shadow-sm {% if same_author_replies %}tweet-thread-enabled{% endif %}" data-post-slug="{{ post.slug }}" data-post-author="{{ post.author.username }}">
+          <div class="card-body p-3 p-md-4 p-lg-5 tweet-card-body">
+            <div class="d-flex gap-3">
+              <div class="tweet-thread-avatar-wrap {% if same_author_replies %}tweet-thread-avatar-wrap-post{% endif %}">
+              <div class="tweet-avatar">
+                {% if post.author.profile.photo %}
+                <img src="{{ post.author.profile.photo.url }}" alt="{{ post.author.get_full_name }}">
+                {% else %}
+                <span>{{ post.author.first_name|first|upper }}{{ post.author.last_name|first|upper }}</span>
+                {% endif %}
+              </div>
+              {% if same_author_replies %}
+              <span class="tweet-thread-line"></span>
+              {% endif %}
+              </div>
+              <div class="flex-grow-1">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                  <h5 class="mb-0 fw-bold tweet-name">{{ post.author.get_full_name|default:post.author.username }}</h5>
+                  <span class="tweet-handle">@{{ post.author.username }}</span>
+                </div>
+                <div class="tweet-meta mb-3">
+                  <span> {{ post.created_at|date:"M j, Y g:i A" }}</span>
+                </div>
+
+                <div class="tweet-body text-dark mb-4">
+                  {{ post.content|linebreaksbr }}
+                </div>
+
+                {% if post.video %}
+                <div class="tweet-media mb-4">
+                  <video controls preload="metadata" playsinline>
+                    <source src="{{ post.video.url }}">
+                    Your browser does not support video playback.
+                  </video>
+                </div>
+                {% elif post.image %}
+                <div class="tweet-media mb-4">
+                  <img src="{{ post.image.url }}" alt="{{ post.title }}">
+                </div>
+                {% endif %}
+
+                <div class="tweet-actions mb-4">
+                  <a href="#replies" class="tweet-action"><i class="bi bi-chat"></i><span>Reply</span><span class="tweet-count">{{ comment_count }}</span></a>
+                  <button type="button" class="tweet-action tweet-share-btn" data-share-title="{{ post.title|escapejs }}" data-share-url="{{ post.get_absolute_url }}"><i class="bi bi-arrow-repeat"></i><span>Share</span></button>
+                  <button type="button" class="tweet-action tweet-like-btn d-inline {% if liked %}tweet-action-liked{% endif %}" data-slug="{{ post.slug }}" data-liked="{% if liked %}true{% else %}false{% endif %}">
+                    <i class="bi bi-heart{% if liked %}-fill{% endif %}"></i>
+                    <span>{% if liked %}Liked{% else %}Like{% endif %}</span>
+                    <span class="tweet-count">{{ like_count }}</span>
+                  </button>
+                  {% if request.user == post.author %}
+                  <button type="button" class="tweet-action tweet-action-danger tweet-delete-btn" data-slug="{{ post.slug }}"><span>Delete</span></button>
+                  {% endif %}
+                </div>
+
+                <div id="replies" class="tweet-replies mt-4 pt-4 border-top">
+                  <h6 class="fw-bold mb-3">Replies</h6>
+                  {% if user.is_authenticated %}
+                  <div class="tweet-compose-mini mb-4">
+                    <form method="post" class="tweet-async-comment-form no-ajax" id="comment-form">
+                      {% csrf_token %}
+                      {% crispy comment_form %}
+                    </form>
+                  </div>
+                  {% endif %}
+
+                  {% if comments %}
+                  <div class="tweet-comment-list" id="tweet-comment-list">
+                    {% for comment in comments %}
+                    <div class="tweet-comment mb-3 {% if comment.author == post.author %}tweet-comment-thread{% endif %}" data-comment-id="{{ comment.id }}" data-comment-author="{{ comment.author.username }}" data-comment-name="{{ comment.author.get_full_name|default:comment.author.username|escape }}">
+                      <div class="d-flex gap-3">
+                        <div class="tweet-thread-avatar-wrap tweet-thread-avatar-wrap-comment {% if comment.author == post.author %}tweet-thread-avatar-wrap-comment-thread{% endif %}">
+                        <div class="tweet-avatar tweet-avatar-sm">
+                          {% if comment.author.profile.photo %}
+                          <img src="{{ comment.author.profile.photo.url }}" alt="{{ comment.author.get_full_name }}">
+                          {% else %}
+                          <span>{{ comment.author.first_name|first|upper }}{{ comment.author.last_name|first|upper }}</span>
+                          {% endif %}
+                        </div>
+                        {% if comment.author == post.author %}
+                        <span class="tweet-thread-line"></span>
+                        {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                          <div class="d-flex align-items-start gap-2 flex-wrap">
+                            <div class="flex-grow-1 d-flex align-items-center gap-2 flex-wrap min-w-0">
+                            <span class="fw-semibold text-dark">{{ comment.author.get_full_name|default:comment.author.username }}</span>
+                            <span class="tweet-handle">@{{ comment.author.username }}</span>
+                            <span class="tweet-meta">{{ comment.created_at|date:"M j, g:i A" }}</span>
+                            </div>
+                            {% if user.is_authenticated %}
+                            <div class="dropdown tweet-comment-menu ms-auto">
+                              <button class="btn tweet-comment-menu-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Reply options">
+                                <i class="bi bi-three-dots"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-menu-end tweet-post-menu-list tweet-comment-menu-list">
+                                {% if request.user == comment.author or request.user == post.author %}
+                                <li>
+                                  <button type="button" class="dropdown-item text-danger tweet-comment-menu-delete-btn" data-comment-id="{{ comment.id }}">
+                                    <i class="bi bi-trash me-2"></i>Delete Reply
+                                  </button>
+                                </li>
+                                {% endif %}
+                                <li>
+                                  <button type="button" class="dropdown-item tweet-comment-menu-reply-btn" data-comment-id="{{ comment.id }}" data-comment-author="{{ comment.author.username }}">
+                                    <i class="bi bi-reply me-2"></i>Reply
+                                  </button>
+                                </li>
+                              </ul>
+                            </div>
+                            {% endif %}
+                          </div>
+                          <div class="tweet-comment-body mt-1">{{ comment.content|linebreaksbr }}</div>
+                          <div class="tweet-comment-actions mt-2">
+                            <button type="button" class="tweet-comment-action tweet-comment-reply-btn" data-comment-id="{{ comment.id }}" data-comment-author="{{ comment.author.username }}">
+                              <i class="bi bi-reply"></i>
+                              <span>Reply</span>
+                            </button>
+                            {% if user.is_authenticated %}
+                            <button type="button" class="tweet-comment-action tweet-comment-like-btn {% if comment.id in liked_comment_ids %}tweet-comment-action-liked{% endif %}" data-comment-id="{{ comment.id }}" data-liked="{% if comment.id in liked_comment_ids %}true{% else %}false{% endif %}">
+                              <i class="bi {% if comment.id in liked_comment_ids %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                              <span>{% if comment.id in liked_comment_ids %}Liked{% else %}Like{% endif %}</span>
+                              <span class="tweet-count">{{ comment.likes.count }}</span>
+                            </button>
+                            {% endif %}
+                          </div>
+                        </div>
+                      </div>
+                      {% if request.user == comment.author or request.user == post.author %}
+                      <form method="post" action="{% url 'core:blog_comment_delete' comment.id %}" class="d-none tweet-comment-delete-form">
+                        {% csrf_token %}
+                      </form>
+                      {% endif %}
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% else %}
+                  <p class="text-muted mb-0" id="tweet-no-replies">No replies yet.</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const commentForm = document.getElementById('comment-form');
+  
+  // Comment form submission
+  if (commentForm) {
+    let isSubmitting = false;
+    
+    // Disable submit button completely while submitting
+    commentForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      
+      // Do NOT allow submission if already submitting
+      if (isSubmitting) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+      }
+
+      const formData = new FormData(this);
+      const token = this.querySelector('[name=csrfmiddlewaretoken]')?.value || csrfToken || getCookie('csrftoken');
+      const contentField = this.querySelector('[name=content]');
+      const commentContent = contentField.value.trim();
+
+      if (!commentContent) {
+        alert('Please enter a reply.');
+        return false;
+      }
+
+      isSubmitting = true;
+      const submitBtn = this.querySelector('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Posting...';
+      }
+
+      fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': token,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          contentField.value = '';
+
+          const userPhoto = data.comment.author_photo || '';
+          const userInitials = data.comment.author_name.split(' ').map(n => n[0].toUpperCase()).join('').substring(0, 2);
+
+          const newCommentHTML = `
+            <div class="tweet-comment" data-comment-id="${data.comment.id}" data-comment-author="${data.comment.author_username}" data-comment-name="${data.comment.author_name}">
+              <div class="d-flex gap-3">
+                <div class="tweet-thread-avatar-wrap tweet-thread-avatar-wrap-comment">
+                  <div class="tweet-avatar tweet-avatar-sm">
+                    ${userPhoto ? `<img src="${userPhoto}" alt="${data.comment.author_name}">` : `<span>${userInitials}</span>`}
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex align-items-start gap-2 flex-wrap">
+                    <div class="flex-grow-1 d-flex align-items-center gap-2 flex-wrap min-w-0">
+                      <span class="fw-semibold text-dark">${data.comment.author_name}</span>
+                      <span class="tweet-handle">@${data.comment.author_username}</span>
+                      <span class="tweet-meta">just now</span>
+                    </div>
+                    <div class="dropdown tweet-comment-menu ms-auto">
+                      <button class="btn tweet-comment-menu-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Reply options">
+                        <i class="bi bi-three-dots"></i>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-end tweet-post-menu-list tweet-comment-menu-list">
+                        <li>
+                          <button type="button" class="dropdown-item text-danger tweet-comment-delete-btn" data-comment-id="${data.comment.id}">
+                            <i class="bi bi-trash me-2"></i>Delete Reply
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" class="dropdown-item tweet-comment-menu-reply-btn" data-comment-id="${data.comment.id}" data-comment-author="${data.comment.author_username}">
+                            <i class="bi bi-reply me-2"></i>Reply
+                          </button>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="tweet-comment-body mt-1">${data.comment.content.replace(/\n/g, '<br>')}</div>
+                  <div class="tweet-comment-actions mt-2">
+                    <button type="button" class="tweet-comment-action tweet-comment-reply-btn" data-comment-id="${data.comment.id}" data-comment-author="${data.comment.author_username}">
+                      <i class="bi bi-reply"></i>
+                      <span>Reply</span>
+                    </button>
+                    <button type="button" class="tweet-comment-action tweet-comment-like-btn" data-comment-id="${data.comment.id}" data-liked="false">
+                      <i class="bi bi-heart"></i>
+                      <span>Like</span>
+                      <span class="tweet-count">0</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+
+          let commentList = document.getElementById('tweet-comment-list');
+          const noReplies = document.getElementById('tweet-no-replies');
+
+          if (!commentList) {
+            commentList = document.createElement('div');
+            commentList.className = 'tweet-comment-list';
+            commentList.id = 'tweet-comment-list';
+            const repliesSection = document.getElementById('replies');
+            const form = repliesSection.querySelector('.tweet-compose-mini');
+            if (form && form.nextElementSibling) {
+              form.nextElementSibling.before(commentList);
+            } else {
+              form.after(commentList);
+            }
+          }
+
+          if (noReplies) noReplies.remove();
+
+          // Remove existing comment with same id to avoid duplicates
+          const existingComment = document.querySelector(`#tweet-comment-list [data-comment-id="${data.comment.id}"]`);
+          if (existingComment) existingComment.remove();
+
+          commentList.insertAdjacentHTML('beforeend', newCommentHTML);
+          const newComment = commentList.lastElementChild;
+          newComment.style.opacity = '0';
+          newComment.style.transition = 'opacity 0.3s ease-in';
+          setTimeout(() => {
+            newComment.style.opacity = '1';
+          }, 10);
+
+          updateReplyCount();
+        } else {
+          alert('Error posting reply: ' + (data.errors?.content?.[0]?.message || 'Unknown error'));
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error posting reply. Please try again.');
+      })
+      .finally(() => {
+        isSubmitting = false;
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = submitBtn.dataset.originalText || 'Reply';
+        }
+      });
+    });
+  }
+
+  // Use event delegation on the replies section (always exists)
+  // This handles all comment interactions including dynamically created comments
+  const repliesSection = document.getElementById('replies');
+  if (repliesSection) {
+    repliesSection.addEventListener('click', function(e) {
+      const likeBtn = e.target.closest('.tweet-comment-like-btn');
+      if (likeBtn) {
+        e.stopPropagation();
+        toggleCommentLike.call(likeBtn, e);
+        return;
+      }
+      
+      const deleteBtn = e.target.closest('.tweet-comment-delete-btn');
+      if (deleteBtn) {
+        e.stopPropagation();
+        deleteComment.call(deleteBtn, e);
+        return;
+      }
+    });
+  }
+  function toggleCommentLike(e) {
+    const btn = this || e.currentTarget;
+    if (btn.disabled) return; // Prevent double-click
+    const commentId = btn.dataset.commentId;
+    const token = csrfToken || getCookie('csrftoken');
+
+    btn.disabled = true;
+
+    fetch(`/blog/comment/${commentId}/like/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': token,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        const isLiked = data.liked;
+        const icon = btn.querySelector('i');
+        const span = btn.querySelector('span:not(.tweet-count)');
+        const count = btn.querySelector('.tweet-count');
+
+        if (isLiked) {
+          btn.classList.add('tweet-comment-action-liked');
+          icon.className = 'bi bi-heart-fill';
+          span.textContent = 'Liked';
+        } else {
+          btn.classList.remove('tweet-comment-action-liked');
+          icon.className = 'bi bi-heart';
+          span.textContent = 'Like';
+        }
+        count.textContent = data.like_count;
+      }
+    })
+    .catch(error => console.error('Error:', error))
+    .finally(() => {
+      btn.disabled = false;
+    });
+  }
+
+  // Delete comment
+  function deleteComment(e) {
+    const btn = this || e.currentTarget;
+    const commentId = btn.dataset.commentId;
+
+    if (!confirm('Delete this reply?')) return;
+
+    const token = csrfToken || getCookie('csrftoken');
+    const commentDiv = btn.closest('.tweet-comment');
+
+    fetch(`/blog/comment/${commentId}/delete/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': token,
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        commentDiv.style.opacity = '1';
+        commentDiv.style.transition = 'opacity 0.3s ease-out';
+        commentDiv.style.opacity = '0';
+        setTimeout(() => {
+          commentDiv.remove();
+          updateReplyCount();
+        }, 300);
+      }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  // Update reply count
+  function updateReplyCount() {
+    const commentList = document.getElementById('tweet-comment-list');
+    const replyLink = document.querySelector('.tweet-action[href="#replies"]');
+    if (replyLink && commentList) {
+      const count = commentList.querySelectorAll('.tweet-comment').length;
+      const replyCount = replyLink.querySelector('.tweet-count');
+      if (replyCount) replyCount.textContent = count;
+    }
+  }
+
+
+
+  // Post like button
+  document.querySelectorAll('.tweet-like-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const slug = this.dataset.slug;
+      const token = csrfToken || getCookie('csrftoken');
+
+      fetch(`/blog/${slug}/like/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': token,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          const isLiked = data.liked;
+          const icon = this.querySelector('i');
+          const span = this.querySelector('span:not(.tweet-count)');
+          const count = this.querySelector('.tweet-count');
+
+          if (isLiked) {
+            this.classList.add('tweet-action-liked');
+            icon.className = 'bi bi-heart-fill';
+            span.textContent = 'Liked';
+          } else {
+            this.classList.remove('tweet-action-liked');
+            icon.className = 'bi bi-heart';
+            span.textContent = 'Like';
+          }
+          count.textContent = data.like_count;
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  });
+
+  // Post delete button
+  document.querySelectorAll('.tweet-delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      if (!confirm('Delete this post?')) return;
+
+      const slug = this.dataset.slug;
+      const token = csrfToken || getCookie('csrftoken');
+
+      fetch(`/blog/${slug}/delete/`, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': token,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.ok) {
+          window.location.href = '/blog/';
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    });
+  });
+});
+</script>
+{% endblock %}
+
+{% block footer %}{% endblock %}

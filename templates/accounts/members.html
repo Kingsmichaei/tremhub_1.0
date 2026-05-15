@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Members Directory{% endblock %}
+
+{% block content %}
+<div class="trem-page-header">
+  <div class="container">
+    <h1 class="fw-bold text-white mb-1">Members Directory</h1>
+    <p class="text-white-75">Connect with the TREM community family</p>
+  </div>
+</div>
+{% if user.is_authenticated %}
+<div class="container py-4">
+  <!-- Filter Bar -->
+  <div class="trem-filter-bar mb-4">
+    <form method="get" action="{% url 'accounts:members' %}" class="row g-3 align-items-end" data-target-id="members-results">
+      <div class="col-md-4">
+        <label class="form-label fw-semibold small">Search</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+          </span>
+          <input type="text" name="q" value="{{ query }}" class="form-control border-start-0"
+                 placeholder="Name or occupation...">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Branch</label>
+        <select name="branch" class="form-select">
+          <option value="">All Branches</option>
+          {% for val, label in branch_choices %}
+            {% if val %}
+            <option value="{{ val }}" {% if val == selected_branch %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-semibold small">Unit</label>
+        <select name="unit" class="form-select">
+          <option value="">All Units</option>
+          {% for val, label in unit_choices %}
+            {% if val %}
+            <option value="{{ val }}" {% if val == selected_unit %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button type="submit" class="btn btn-trem w-100">Search
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Results and Members Grid (inside target for AJAX) -->
+  <div id="members-results">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <small class="text-muted">
+        {{ profiles|length }} member{{ profiles|length|pluralize }} found
+        {% if query or selected_branch or selected_unit %}
+          <a href="{% url 'accounts:members' %}" class="ms-2 text-trem">Clear filters</a>
+        {% endif %}
+      </small>
+    </div>
+
+    <!-- Members Grid -->
+  {% if profiles %}
+  <div class="row g-4">
+    {% for profile in profiles %}
+    <div class="col-sm-6 col-lg-3">
+      <a href="{% url 'accounts:member_detail' profile.user.pk %}" class="text-decoration-none">
+        <div class="trem-member-card h-100">
+          <div class="trem-member-card-top">
+            {% if profile.photo %}
+              <img src="{{ profile.photo.url }}" class="trem-member-avatar " alt="{{ profile.display_name }}">
+            {% else %}
+              <div class="trem-member-avatar-placeholder">
+                {{ profile.user.first_name|first|upper }}{{ profile.user.last_name|first|upper }}
+              </div>
+            {% endif %}
+          </div>
+          <div class="trem-member-card-body text-center">
+            <h6 class="fw-bold mb-1 text-dark">{{ profile.display_name }}</h6>
+            {% if profile.occupation %}
+            <p class="text-trem small fw-semibold mb-1">{{ profile.occupation }}</p>
+            {% endif %}
+            {% if profile.branch %}
+            <p class="text-muted small mb-1">
+              <i class="bi bi-geo-alt me-1"></i>{{ profile.branch_display }}
+            </p>
+            {% endif %}
+            {% if profile.unit %}
+            <span class="badge trem-badge-outline small">{{ profile.unit_display }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="trem-empty-state py-5">
+    <i class="bi bi-people"></i>
+    <h5>No members found</h5>
+    <p class="text-muted">Try adjusting your search or filters.</p>
+    <a href="{% url 'accounts:members' %}" class="btn btn-outline-trem">Clear filters</a>
+  </div>
+  {% endif %}
+</div>
+
+{% else %}
+<div class="pb-4">
+  <div class="trem-empty-state py-5">
+    <i class="bi bi-people"></i>
+    <p class="text-muted">Discover other TREMites like you.</p>
+    <a href="{% url 'accounts:login' %}" class="btn btn-outline-trem me-2">Sign In</a>
+    <a href="{% url 'accounts:register' %}" class="btn btn-outline-trem">Create Account</a>
+ 
+  </div>
+</div>
+{% endif %} 
+  
+{% endblock %}
+
+{% block footer %}{% endblock %}

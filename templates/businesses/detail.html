@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ business.name }}{% endblock %}
+
+{% block content %}
+<!-- Banner -->
+<div class="trem-biz-banner">
+  {% if business.banner %}
+    <img src="{{ business.banner.url }}" alt="{{ business.name }} banner" class="w-100 h-100 object-fit-cover">
+  {% else %}
+    <div class="trem-biz-banner-placeholder"></div>
+  {% endif %}
+  <div class="trem-biz-banner-overlay"></div>
+</div>
+
+<div class="container">
+  <!-- Business Header Card -->
+  <div class="trem-biz-header-card">
+    <div class="d-flex align-items-start gap-4 flex-wrap">
+      <!-- Logo -->
+      <div class="trem-biz-logo-wrap">
+        {% if business.logo %}
+          <img src="{{ business.logo.url }}" alt="{{ business.name }} logo">
+        {% else %}
+          <div class="trem-biz-logo-placeholder">
+            <i class="bi bi-shop-window"></i>
+          </div>
+        {% endif %}
+      </div>
+      <!-- Info -->
+      <div class="flex-grow-1">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+          <div>
+            <span class="trem-biz-category mb-2 d-inline-block">{{ business.category_display }}</span>
+            <h1 class="fw-bold mb-1">{{ business.name }}</h1>
+            <div class="d-flex align-items-center gap-2 text-muted">
+              {% if business.owner.profile.photo %}
+                <img src="{{ business.owner.profile.photo.url }}" class="trem-mini-avatar" alt="">
+              {% else %}
+                <div class="trem-mini-avatar-placeholder">{{ business.owner.first_name|first|upper }}</div>
+              {% endif %}
+              <span>by <a href="{% url 'accounts:member_detail' business.owner.pk %}" class="text-trem fw-semibold text-decoration-none">
+                {{ business.owner.get_full_name|default:business.owner.username }}
+              </a></span>
+            </div>
+          </div>
+          {% if user == business.owner %}
+          <div class="d-flex gap-2">
+            <a href="{% url 'businesses:edit' business.pk %}" class="btn btn-outline-trem btn-sm">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+            <a href="{% url 'businesses:delete' business.pk %}" class="btn btn-outline-danger btn-sm">
+              <i class="bi bi-trash me-1"></i>Delete
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Contact quick links -->
+        <div class="d-flex flex-wrap gap-2 mt-3">
+          {% if business.phone %}
+          <a href="tel:{{ business.phone }}" class="btn btn-trem btn-sm">
+            <i class="bi bi-telephone me-1"></i>Call
+          </a>
+          {% endif %}
+          {% if business.whatsapp_link %}
+          <a href="{{ business.whatsapp_link }}" target="_blank" class="btn btn-success btn-sm">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+          </a>
+          {% endif %}
+          {% if business.email %}
+          <a href="mailto:{{ business.email }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-envelope me-1"></i>Email
+          </a>
+          {% endif %}
+          {% if business.website %}
+          <a href="{{ business.website }}" target="_blank" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-globe me-1"></i>Website
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4 mt-2 mb-5">
+    <!-- Main content -->
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-info-circle text-trem me-2"></i>About This Business</h5>
+          <p class="text-muted lh-lg">{{ business.description }}</p>
+        </div>
+      </div>
+
+      {% if business.address %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-geo-alt text-trem me-2"></i>Location</h5>
+          <p class="text-muted mb-0">{{ business.address }}</p>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Social Media -->
+      {% if business.instagram or business.twitter or business.facebook %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h5 class="fw-bold mb-3"><i class="bi bi-share text-trem me-2"></i>Social Media</h5>
+          <div class="d-flex gap-3">
+            {% if business.instagram %}
+            <a href="https://instagram.com/{{ business.instagram }}" target="_blank" class="trem-social-link instagram">
+              <i class="bi bi-instagram"></i> @{{ business.instagram }}
+            </a>
+            {% endif %}
+            {% if business.twitter %}
+            <a href="https://twitter.com/{{ business.twitter }}" target="_blank" class="trem-social-link twitter">
+              <i class="bi bi-twitter-x"></i> @{{ business.twitter }}
+            </a>
+            {% endif %}
+            {% if business.facebook %}
+            <a href="https://facebook.com/{{ business.facebook }}" target="_blank" class="trem-social-link facebook">
+              <i class="bi bi-facebook"></i> {{ business.facebook }}
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Owner card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4 text-center">
+          <h6 class="fw-bold mb-3">Business Owner</h6>
+          {% if business.owner.profile.photo %}
+            <img src="{{ business.owner.profile.photo.url }}" class="trem-profile-avatar mb-3" alt="">
+          {% else %}
+            <div class="trem-profile-avatar-placeholder mb-3 mx-auto">
+              {{ business.owner.first_name|first|upper }}{{ business.owner.last_name|first|upper }}
+            </div>
+          {% endif %}
+          <h6 class="fw-bold mb-1">{{ business.owner.get_full_name|default:business.owner.username }}</h6>
+          {% if business.owner.profile.branch %}
+          <small class="text-muted d-block mb-1"><i class="bi bi-geo-alt me-1"></i>{{ business.owner.profile.branch_display }}</small>
+          {% endif %}
+          {% if business.owner.profile.unit %}
+          <small class="text-muted d-block mb-3"><i class="bi bi-people me-1"></i>{{ business.owner.profile.unit_display }}</small>
+          {% endif %}
+          <a href="{% url 'accounts:member_detail' business.owner.pk %}" class="btn btn-outline-trem btn-sm w-100">
+            View Profile
+          </a>
+        </div>
+      </div>
+
+      <!-- Contact details -->
+      <div class="card border-0 shadow-sm">
+        <div class="card-body p-4">
+          <h6 class="fw-bold mb-3">Contact Details</h6>
+          {% if business.phone %}
+          <div class="trem-contact-row">
+            <i class="bi bi-telephone-fill text-trem"></i>
+            <a href="tel:{{ business.phone }}">{{ business.phone }}</a>
+          </div>
+          {% endif %}
+          {% if business.email %}
+          <div class="trem-contact-row">
+            <i class="bi bi-envelope-fill text-trem"></i>
+            <a href="mailto:{{ business.email }}">{{ business.email }}</a>
+          </div>
+          {% endif %}
+          {% if business.whatsapp %}
+          <div class="trem-contact-row">
+            <i class="bi bi-whatsapp text-success"></i>
+            <a href="{{ business.whatsapp_link }}" target="_blank">{{ business.whatsapp }}</a>
+          </div>
+          {% endif %}
+          {% if business.website %}
+          <div class="trem-contact-row">
+            <i class="bi bi-globe text-trem"></i>
+            <a href="{{ business.website }}" target="_blank">Visit Website</a>
+          </div>
+          {% endif %}
+          {% if not business.phone and not business.email and not business.whatsapp and not business.website %}
+          <p class="text-muted small mb-0">No contact info provided.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related businesses -->
+  {% if related %}
+  <div class="mb-5">
+    <h4 class="fw-bold mb-4">Other Businesses in {{ business.category_display }}</h4>
+    <div class="row g-4">
+      {% for biz in related %}
+        {% include 'businesses/_card.html' with business=biz %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block footer %}{% endblock %}

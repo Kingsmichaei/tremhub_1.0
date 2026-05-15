@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#c0392b">
+  <meta name="description" content="TREMHUB — TREM Business Community Hub. Connect, share, and grow together.">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TREMHUB">
+  <link rel="icon" type="image/png" sizes="96x96" href="/static/icons/favicon-96x96.png">
+  <link rel="icon" href="/static/icons/favicon.svg" type="image/svg+xml" sizes="any">
+  <link rel="icon" href="/static/icons/favicon.ico">
+  <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+
+
+  <title>{% block title %}TREMHUB{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"> -->
+  <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+  <!-- Custom CSS -->
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/tremhub.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+<nav class="navbar navbar-expand-lg" id="mainNav">
+  <div class="container-fluid">
+    <a href="{% url 'core:home' %}" class="navbar-brand">TREMHUB</a>
+
+    <ul class="nav-links">
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}"><i class="bi bi-house-door me-1"></i>Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if 'businesses' in request.path %}active{% endif %}" href="{% url 'businesses:list' %}"><i class="bi bi-shop me-1"></i>Businesses</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if 'members' in request.path %}active{% endif %}" href="{% url 'accounts:members' %}"><i class="bi bi-people me-1"></i>Members</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.resolver_match.url_name == 'blog' %}active{% endif %}" href="{% url 'core:blog' %}"><i class="bi bi-journal-text me-1"></i>Blog</a>
+      </li>
+    </ul>
+
+    <ul class="navbar-nav ms-auto trem-navbar align-items-center">
+      {% if user.is_authenticated %}
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+          {% if user.profile.photo %}
+            <img src="{{ user.profile.photo.url }}" class="trem-nav-avatar" alt="{{ user.get_full_name }}">
+          {% else %}
+            <div class="trem-nav-avatar-placeholder">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+          {% endif %}
+          <span>{{ user.first_name|default:user.username }}</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end trem-dropdown-menu">
+          <li><a class="dropdown-item" href="{% url 'accounts:profile' %}"><i class="bi bi-person-circle me-2"></i>My Profile</a></li>
+          <li><a class="dropdown-item" href="{% url 'businesses:create' %}"><i class="bi bi-plus-circle me-2"></i>Add Business</a></li>
+          <li><a class="dropdown-item" href="{% url 'core:blog_create' %}"><i class="bi bi-journal-plus me-2"></i>Add Blog Post</a></li>
+          <li><a class="dropdown-item" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+          {% if user.is_staff %}
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-shield-check me-2"></i>Admin Panel</a></li>
+          {% endif %}
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Sign Out</a></li>
+        </ul>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a>
+      </li>
+      <li class="nav-item ms-2">
+        <a class="btn btn-trem-white btn-sm px-3" href="{% url 'accounts:register' %}">Join TREMHUB</a>
+      </li>
+      {% endif %}
+    </ul>
+
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu" aria-controls="mobileMenu" aria-expanded="false">
+    <span></span> <span></span> <span></span>
+    </button>
+  </div>
+</nav>
+
+<div class="nav-mobile" id="mobileMenu">
+  <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'core:home' %}"><i class="bi bi-house-door me-1"></i>Home</a>
+  <a class="nav-link {% if 'businesses' in request.path %}active{% endif %}" href="{% url 'businesses:list' %}"><i class="bi bi-shop me-1"></i>Businesses</a>
+  <a class="nav-link {% if 'members' in request.path %}active{% endif %}" href="{% url 'accounts:members' %}"><i class="bi bi-people me-1"></i>Members</a>
+  <a class="nav-link {% if request.resolver_match.url_name == 'blog' %}active{% endif %}" href="{% url 'core:blog' %}"><i class="bi bi-journal-text me-1"></i>Blog</a>
+
+  <div class="mobile-auth-links">
+    {% if user.is_authenticated %}
+      <a class="nav-link" href="{% url 'accounts:profile' %}"><i class="bi bi-person-circle me-1"></i>My Profile</a>
+      <a class="nav-link" href="{% url 'businesses:create' %}"><i class="bi bi-plus-circle me-1"></i>Add Business</a>
+      <a class="nav-link" href="{% url 'core:blog_create' %}"><i class="bi bi-journal-plus me-1"></i>Add Blog Post</a>
+      <a class="nav-link" href="{% url 'accounts:edit_profile' %}"><i class="bi bi-pencil-square me-1"></i>Edit Profile</a>
+      {% if user.is_staff %}
+      <a class="nav-link" href="{% url 'admin:index' %}"><i class="bi bi-shield-check me-1"></i>Admin Panel</a>
+      {% endif %}
+      <a class="nav-link text-danger" href="{% url 'accounts:logout' %}"><i class="bi bi-box-arrow-right me-1"></i>Sign Out</a>
+    {% else %}
+      <a class="nav-link" href="{% url 'accounts:login' %}"><i class="bi bi-box-arrow-in-right me-1"></i>Sign In</a>
+      <a class="btn btn-trem-white btn-sm w-100 mt-2" href="{% url 'accounts:register' %}">Join TREMHUB</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- MESSAGES -->
+{% if messages %}
+<div class="container mt-3">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show" role="alert">
+    <i class="bi bi-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' or message.tags == 'danger' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- MAIN CONTENT -->
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+{% block footer %}
+<!-- FOOTER -->
+<footer class="trem-footer mt-5">
+  <div class="container">
+    <div class="row gy-4">
+      <div class="col-lg-4">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <div class="trem-logo-badge">
+            <span class="fw-bold">T</span>
+          </div>
+          <div>
+            <div class="fw-bold text-white fs-5 lh-1">TREMHUB</div>
+            <small class="text-white-50">TREM Business Community</small>
+          </div>
+        </div>
+        <p class="text-white-50 small">
+          A community platform connecting TREM members, empowering believers to support each other's businesses and grow together in faith.
+        </p>
+      </div>
+      <div class="col-lg-2 col-3">
+        <h6 class="text-white fw-semibold mb-3">Quick Links</h6>
+        <ul class="list-unstyled trem-footer-links">
+          <li><a href="{% url 'core:home' %}">Home</a></li>
+          <li><a href="{% url 'businesses:list' %}">Businesses</a></li>
+          <li><a href="{% url 'accounts:members' %}">Members</a></li>
+          <li><a href="{% url 'core:blog' %}">Blog</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-3">
+        <h6 class="text-white fw-semibold mb-3">Account</h6>
+        <ul class="list-unstyled trem-footer-links">
+          {% if user.is_authenticated %}
+          <li><a href="{% url 'accounts:profile' %}">My Profile</a></li>
+          <li><a href="{% url 'businesses:create' %}">Add Business</a></li>
+          <li><a href="{% url 'accounts:logout' %}">Sign Out</a></li>
+          {% else %}
+          <li><a href="{% url 'accounts:register' %}">Register</a></li>
+          <li><a href="{% url 'accounts:login' %}">Sign In</a></li>
+          {% endif %}
+        </ul>
+         </div>
+      <div class="col-lg-2 col-3">
+        <h6 class="text-white fw-semibold mb-3">Legal</h6>
+        <ul class="list-unstyled trem-footer-links">
+          <li><a href="{% url 'core:privacy_policy' %}">Privacy Policy</a></li>
+          <li><a href="{% url 'core:terms_of_service' %}">Terms of Service</a></li>
+          <li><a href="{% url 'core:cookie_policy' %}">Cookie Policy</a></li>
+          <li><a href="{% url 'core:accessibility_statement' %}">Accessibility</a></li>
+        </ul>
+      </div>
+      <div class="col-lg-2 col-3">
+        <h6 class="text-white fw-semibold mb-3">Install the App</h6>
+        <p class="text-white-50 small mb-3">Add TREMHUB to your home screen for a native app experience on any device.</p>
+        <button id="installBtn" class="btn btn-outline-light btn-sm d-none" onclick="installPWA()">
+          <i class="bi bi-download me-2"></i>Install App
+        </button>
+        <p class="text-white-50 small mt-2">
+          <i class="bi bi-info-circle me-1"></i>
+          On iOS: tap Share → "Add to Home Screen"
+        </p>
+      </div>
+     </div>
+    <hr class="border-secondary mt-4">
+    <div class="container row align-items-center">
+      <div class="col-md-6">
+        <small class="text-white-50">© {% now "Y" %} TREMHUB by OMKCODE. All rights reserved.</small>
+      </div>
+      <div class="col-md-6 text-md-end">
+        <small class="text-white-50 d-block d-md-inline mb-1 mb-md-0">Built with ❤️ for the TREM Community</small>
+      </div>
+    </div>
+  </div>
+</footer>
+{% endblock %}
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<!-- Global AJAX Form Handler -->
+<script src="{% static 'js/ajax-forms.js' %}"></script>
+<script src="{% static 'js/tremhub.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

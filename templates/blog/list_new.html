@@ -1,0 +1,261 @@
+{% extends 'base.html' %}
+
+{% block title %}Blog{% endblock %}
+
+{% block content %}
+<section class="py-2 trem-feed-shell">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 col-xl-7">
+        {% if user.is_authenticated %}    
+        <a href="{% url 'core:blog_create' %}" class="blog-create-fab" aria-label="Create blog post" title="Create blog post">
+          <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        </a>
+        {% endif %}
+
+        <!-- Blog Tab Navigation -->
+        <div class="blog-tabs-container mb-4">
+          <nav class="nav blog-tabs" role="tablist">
+            <button 
+              class="nav-link blog-tab-btn {% if current_tab == 'for_you' %}active{% endif %}" 
+              id="blog-tab-for-you" 
+              data-tab="for_you" 
+              type="button" 
+              role="tab" 
+              aria-controls="blog-posts-for-you" 
+              aria-selected="{% if current_tab == 'for_you' %}true{% else %}false{% endif %}">For You
+            </button>
+            {% if user.is_authenticated %}
+            <button 
+              class="nav-link blog-tab-btn {% if current_tab == 'my_blog' %}active{% endif %}" 
+              id="blog-tab-my-blog" 
+              data-tab="my_blog" 
+              type="button" 
+              role="tab" 
+              aria-controls="blog-posts-my-blog" 
+              aria-selected="{% if current_tab == 'my_blog' %}true{% else %}false{% endif %}">
+              </i>Posts
+            </button>
+            {% endif %}
+          </nav>
+          <div class="blog-tabs-underline"></div>
+        </div>
+
+        <!-- Posts Container -->
+        <div id="blog-posts-wrapper" class="blog-posts-wrapper">
+          {% include 'blog/_posts_list.html' %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="postInsightsModal" tabindex="-1" aria-labelledby="postInsightsModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content tweet-insights-modal">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title" id="postInsightsModalLabel">Post Insights</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <p class="small text-muted mb-3" id="postInsightsTitle"></p>
+        <div class="tweet-insights-grid">
+          <div class="tweet-insight-card">
+            <span class="tweet-insight-value" id="postInsightsViews">0</span>
+            <span class="tweet-insight-label">Views</span>
+          </div>
+          <div class="tweet-insight-card">
+            <span class="tweet-insight-value" id="postInsightsLikes">0</span>
+            <span class="tweet-insight-label">Likes</span>
+          </div>
+          <div class="tweet-insight-card">
+            <span class="tweet-insight-value" id="postInsightsComments">0</span>
+            <span class="tweet-insight-label">Comments</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .blog-tabs-container {
+    border-bottom: 1px solid var(--bs-border-color);
+    position: relative;
+  }
+
+  .blog-tabs {
+    gap: 0;
+    margin-bottom: 0;
+  }
+
+  .blog-tab-btn {
+    border: none;
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
+    padding: 1rem 1.5rem;
+    font-weight: 600;
+    color: var(--bs-body-color);
+    transition: all 0.3s ease;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+
+
+  .blog-tab-btn.active {
+    color: var(--bs-primary);
+    border-bottom-color: var(--bs-primary);
+  }
+
+  .blog-posts-wrapper {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Mobile responsive tabs */
+  @media (max-width: 576px) {
+    .blog-tab-btn {
+      padding: 0.75rem 1rem;
+      font-size: 0.9rem;
+    }
+
+    .blog-tab-btn i {
+      margin-right: 0.5rem !important;
+    }
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const tabButtons = document.querySelectorAll('.blog-tab-btn');
+  const postsWrapper = document.getElementById('blog-posts-wrapper');
+  
+  tabButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const tab = this.dataset.tab;
+      switchBlogTab(tab);
+    });
+  });
+
+  function switchBlogTab(tab) {
+    // Update active tab button
+    tabButtons.forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+    // Fetch posts for the selected tab
+    const formData = new FormData();
+    formData.append('tab', tab);
+
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                      document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
+    
+    fetch('{% url "core:blog_posts_tab" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken,
+      },
+      body: formData,
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.ok) {
+        // Fade out current posts
+        postsWrapper.style.opacity = '0.5';
+        
+        setTimeout(() => {
+          postsWrapper.innerHTML = data.posts_html;
+          postsWrapper.style.opacity = '1';
+          
+          // Re-initialize event listeners for new posts
+          reinitializePostListeners();
+        }, 150);
+      } else {
+        console.error('Error loading posts:', data.error);
+      }
+    })
+    .catch(error => console.error('Fetch error:', error));
+  }
+
+  function reinitializePostListeners() {
+    // Re-attach event listeners to posts in the feed
+    const likeButtons = postsWrapper.querySelectorAll('.tweet-like-form');
+    const deleteButtons = postsWrapper.querySelectorAll('.tweet-menu-delete-btn');
+    const hideButtons = postsWrapper.querySelectorAll('.tweet-menu-hide-btn');
+    const reportButtons = postsWrapper.querySelectorAll('.tweet-menu-report-btn');
+    const insightsButtons = postsWrapper.querySelectorAll('.tweet-post-insights-btn');
+
+    // Like button functionality (already handled by form submission)
+    likeButtons.forEach(form => {
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        this.submit();
+      });
+    });
+
+    // Delete button
+    deleteButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const form = this.closest('.tweet-card').querySelector('.tweet-post-delete-form');
+        if (confirm('Are you sure you want to delete this post?')) {
+          form.submit();
+        }
+      });
+    });
+
+    // Hide button
+    hideButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const form = this.closest('.tweet-card').querySelector('.tweet-post-hide-form');
+        form.submit();
+      });
+    });
+
+    // Report button
+    reportButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const form = this.closest('.tweet-card').querySelector('.tweet-post-report-form');
+        if (confirm('Are you sure you want to report this post?')) {
+          form.submit();
+        }
+      });
+    });
+
+    // Insights button
+    insightsButtons.forEach(btn => {
+      btn.addEventListener('click', function() {
+        const card = this.closest('.tweet-card');
+        const title = card.dataset.postTitle;
+        const views = card.dataset.postViews;
+        const likes = card.dataset.postLikes;
+        const comments = card.dataset.postComments;
+
+        document.getElementById('postInsightsTitle').textContent = `"${title}"`;
+        document.getElementById('postInsightsViews').textContent = views;
+        document.getElementById('postInsightsLikes').textContent = likes;
+        document.getElementById('postInsightsComments').textContent = comments;
+
+        new bootstrap.Modal(document.getElementById('postInsightsModal')).show();
+      });
+    });
+  }
+
+  // Initialize listeners on page load
+  reinitializePostListeners();
+});
+</script>
